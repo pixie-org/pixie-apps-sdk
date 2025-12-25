@@ -27,31 +27,33 @@ export class McpAppsProvider implements Provider {
     constructor() {
         this.app = new App({
             name: "Pixie Apps SDK",
-            version: "1.0.0",
-            description: "Pixie Apps SDK",
+            version: "1.0.3",
         });
         this.app.connect(new PostMessageTransport(window.parent));
-       
 
         this.toolInputStore = createStateStore<UnknownObject>({});
         this.toolOutputStore = createStateStore<UnknownObject>({});
         this.toolResponseMetadataStore = createStateStore<UnknownObject>({});
         this.hostContextStore = createStateStore<HostContext>({});
 
-        this.app.ontoolinput = (params) => {
-            this.toolInputStore.setState(params as UnknownObject);
-        };
-        this.app.ontoolresult = (params) => {
-            const toolResult = params as CallToolResult;
-            this.toolOutputStore.setState(toolResult.structuredContent || {});
-            this.toolResponseMetadataStore.setState(toolResult._meta as UnknownObject);
-        };
+        const initialContext = this.app.getHostContext();
+        this.hostContextStore.setState(initialContext as HostContext);
         this.app.onhostcontextchanged = (params) => {
             const currentContext = this.hostContextStore.getState();
             this.hostContextStore.setState({
                 ...currentContext,
                 ...params,
             } as HostContext);
+        };
+
+        this.app.ontoolinput = (params) => {
+            this.toolInputStore.setState(params as UnknownObject);
+        };
+
+        this.app.ontoolresult = (params) => {
+            const toolResult = params as CallToolResult;
+            this.toolOutputStore.setState(toolResult.structuredContent || {});
+            this.toolResponseMetadataStore.setState(toolResult._meta as UnknownObject);
         };
     }
 
