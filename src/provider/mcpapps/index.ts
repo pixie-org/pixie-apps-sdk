@@ -1,74 +1,141 @@
-import { CallToolResponse, Provider, WidgetState } from "../../types";
+import { Provider, WidgetState } from "../../types";
 import { UnknownObject, Theme, SafeArea, UserAgent, DisplayMode } from "../../types";
+import { App, PostMessageTransport } from "@modelcontextprotocol/ext-apps";
+import { createStateStore } from "./types";
+import {CallToolResult} from "@modelcontextprotocol/sdk/types.js";
+
+type HostContext = {
+    theme?: Theme;
+    displayMode?: DisplayMode;
+    maxHeight?: number;
+    safeArea?: SafeArea;
+    userAgent?: UserAgent;
+    locale?: string;
+    [key: string]: unknown; // Allow other fields from host context
+};
 
 export class McpAppsProvider implements Provider {
-    constructor() {}
+    private app: App;
+    private toolInputStore: ReturnType<typeof createStateStore<UnknownObject>>;
+    private toolOutputStore: ReturnType<typeof createStateStore<UnknownObject>>;
+    private toolResponseMetadataStore: ReturnType<typeof createStateStore<UnknownObject>>;
+    private hostContextStore: ReturnType<typeof createStateStore<HostContext>>;
+
+    // local widget state - MCP Apps support not there yet.
+    private widgetState: UnknownObject = {};
+
+    constructor() {
+        this.app = new App({
+            name: "Pixie Apps SDK",
+            version: "1.0.0",
+            description: "Pixie Apps SDK",
+        });
+        this.app.connect(new PostMessageTransport(window.parent));
+       
+
+        this.toolInputStore = createStateStore<UnknownObject>({});
+        this.toolOutputStore = createStateStore<UnknownObject>({});
+        this.toolResponseMetadataStore = createStateStore<UnknownObject>({});
+        this.hostContextStore = createStateStore<HostContext>({});
+
+        this.app.ontoolinput = (params) => {
+            this.toolInputStore.setState(params as UnknownObject);
+        };
+        this.app.ontoolresult = (params) => {
+            const toolResult = params as CallToolResult;
+            this.toolOutputStore.setState(toolResult.structuredContent || {});
+            this.toolResponseMetadataStore.setState(toolResult._meta as UnknownObject);
+        };
+        this.app.onhostcontextchanged = (params) => {
+            const currentContext = this.hostContextStore.getState();
+            this.hostContextStore.setState({
+                ...currentContext,
+                ...params,
+            } as HostContext);
+        };
+    }
 
     useToolInput(): UnknownObject {
-        throw new Error("Not implemented");
+        return this.toolInputStore.useStore();
     }
     
     useToolOutput(): UnknownObject {
-        throw new Error("Not implemented");
+        return this.toolOutputStore.useStore();
     }
 
     useToolResponseMetadata(): UnknownObject {
-        throw new Error("Not implemented");
+        return this.toolResponseMetadataStore.useStore();
     }
 
     useTheme(): Theme {
-        throw new Error("Not implemented");
+        const context = this.hostContextStore.useStore();
+        return (context.theme as Theme) || "light";
     }
 
     useDisplayMode(): DisplayMode {
-        throw new Error("Not implemented");
+        const context = this.hostContextStore.useStore();
+        return (context.displayMode as DisplayMode) || "inline";
     }
 
     useMaxHeight(): number {
-        throw new Error("Not implemented");
+        const context = this.hostContextStore.useStore();
+        return context.maxHeight ?? 0;
     }
 
     useSafeArea(): SafeArea {
-        throw new Error("Not implemented");
+        const context = this.hostContextStore.useStore();
+        return context.safeArea || {
+            insets: { top: 0, bottom: 0, left: 0, right: 0 }
+        };
     }
 
     useUserAgent(): UserAgent {
-        throw new Error("Not implemented");
+        const context = this.hostContextStore.useStore();
+        return context.userAgent || {
+            device: { type: "unknown" },
+            capabilities: { hover: false, touch: false }
+        };
     }
 
     useLocale(): string {
-        throw new Error("Not implemented");
+        const context = this.hostContextStore.useStore();
+        return context.locale as string;
     }
 
     getWidgetState(): WidgetState {
-        throw new Error("Not implemented");
+        console.error("Getting widget state is not implemented for MCP Apps.");
+        return this.widgetState;
     }
 
     setWidgetState(widgetState: WidgetState): any {
-        throw new Error("Not implemented");
+        console.error("Setting widget state is not implemented for MCP Apps.");
+        this.widgetState = widgetState;
     }
 
-    callTool(name: string, args?: Record<string, unknown>): Promise<CallToolResponse> {
-        throw new Error("Not implemented");
+    callTool(name: string, args?: Record<string, unknown>): Promise<CallToolResult> {
+        return this.app.callServerTool({name, arguments: args});
     }
 
     sendFollowupMessage(message: string): void {
-        throw new Error("Not implemented");
+        this.app.sendMessage({
+            role: "user",
+            content: [{ type: "text", text: message }]
+        });
     }
 
     openExternal(href: string): void {
-        throw new Error("Not implemented");
+        this.app.openLink({url: href});
     }
 
     requestDisplayMode(mode: DisplayMode): void {
-        throw new Error("Not implemented");
+        this.app.requestDisplayMode({mode: mode});
     }
   
     requestModal(args: { title?: string; params?: UnknownObject }): Promise<unknown> {
-        throw new Error("Not implemented");
+        throw new Error("Not implemented yet for MCP Apps.");
     }
   
     requestClose(): Promise<void> {
-        throw new Error("Not implemented");
+        throw new Error("Not implemented yet for MCP Apps.");
     }
 }

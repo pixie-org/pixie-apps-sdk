@@ -13,7 +13,9 @@
   },
   "peerDependencies": {
     "react": ">=18",
-    "react-dom": ">=18"
+    "react-dom": ">=18",
+    "@modelcontextprotocol/sdk": "^1.25.1",
+    "@modelcontextprotocol/ext-apps": "^0.2.2"
   },
   "devDependencies": {
     "@types/react": "^18.0.0",

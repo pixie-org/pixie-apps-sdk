@@ -1,6 +1,7 @@
 import { Provider } from './types';
 import { OpenAiProvider} from './provider/openai';
 import { isOpenAiAvailable } from './utils';
+import { McpAppsProvider } from './provider/mcpapps';
 
 let cachedProvider: Provider | null = null;
 
@@ -8,8 +9,7 @@ function initializeProvider(): Provider {
     if (isOpenAiAvailable()) {
         return new OpenAiProvider();
     }
-    // raise error
-    throw new Error('No provider available');
+    return new McpAppsProvider();
 }
 
 export function getProvider(): Provider {

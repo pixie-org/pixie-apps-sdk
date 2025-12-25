@@ -1,3 +1,4 @@
+import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { UnknownObject, Theme, SafeArea, UserAgent, DisplayMode } from "../../types";
 
 export type OpenAiGlobals<
@@ -28,7 +29,7 @@ export type OpenAiGlobals<
 // currently copied from types.ts in chatgpt/web-sandbox.
 // Will eventually use a public package.
 type API = {
-  callTool: any;
+  callTool: (name: string, args?: Record<string, unknown>) => Promise<CallToolResult>;
   sendFollowUpMessage: (args: { prompt: string }) => Promise<void>;
   openExternal(payload: { href: string }): void;
 

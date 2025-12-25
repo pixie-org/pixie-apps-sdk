@@ -112,27 +112,22 @@ const searchParser = z.object({
   query: z.string(),
 });
 
-function toolDescriptorMeta() {
-  return {
-    "openai/outputTemplate": TEMPLATE_URI,
-    "openai/toolInvocation/invoking": "Searching for groceries",
-    "openai/toolInvocation/invoked": "Groceries found",
-    "openai/widgetAccessible": true,
-  } as const;
-}
-
-function toolInvocationMeta(invocation: string) {
-  return {
-    ...toolDescriptorMeta(),
-    invocation,
-  };
-}
+export type ToolMetaFunction = () => Record<string, unknown>;
 
 export function createGroceryServer(
   serverName: string,
   mimeType: string,
-  widgetHtml: string
+  widgetHtml: string,
+  toolMetaFn: ToolMetaFunction
 ): Server {
+  const toolDescriptorMeta = toolMetaFn;
+  
+  function toolInvocationMeta(invocation: string) {
+    return {
+      ...toolDescriptorMeta(),
+      invocation,
+    };
+  }
   const tools: Tool[] = [
     {
       name: "search-groceries",

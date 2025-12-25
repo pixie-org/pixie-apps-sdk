@@ -14,7 +14,7 @@ import {
   type SessionRecord,
 } from "./common/server-utils.js";
 
-const MIME_TYPE = "text/html+mcp";
+const MIME_TYPE = "text/html;profile=mcp-app";
 const SERVER_NAME = "grocery-store-node-mcpapps";
 
 // Port configuration
@@ -26,9 +26,16 @@ const staticPort = Number.isFinite(staticPortEnv) ? staticPortEnv : 8002;
 // Read widget HTML
 const widgetHtml = readWidgetHtml(staticPort);
 
+// MCP Apps-specific metadata (can be customized as needed)
+function mcpAppsToolMeta() {
+  return {
+    "ui/resourceUri": "ui://widget/grocery-store.html",
+  } as const;
+}
+
 // Create grocery server factory
 function createServer() {
-  return createGroceryServer(SERVER_NAME, MIME_TYPE, widgetHtml);
+  return createGroceryServer(SERVER_NAME, MIME_TYPE, widgetHtml, mcpAppsToolMeta);
 }
 
 // Start MCP server (static server is started by server.ts)
