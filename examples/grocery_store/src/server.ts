@@ -27,9 +27,18 @@ const staticPort = Number.isFinite(staticPortEnv) ? staticPortEnv : 8002;
 // Read widget HTML
 const widgetHtml = readWidgetHtml(staticPort);
 
+function openAiToolMeta() {
+  return {
+    "openai/outputTemplate": "ui://widget/grocery-store.html",
+    "openai/toolInvocation/invoking": "Searching for groceries",
+    "openai/toolInvocation/invoked": "Groceries found",
+    "openai/widgetAccessible": true,
+  } as const;
+}
+
 // Create grocery server factory
 function createServer() {
-  return createGroceryServer(SERVER_NAME, MIME_TYPE, widgetHtml);
+  return createGroceryServer(SERVER_NAME, MIME_TYPE, widgetHtml, openAiToolMeta);
 }
 
 // Start static file server

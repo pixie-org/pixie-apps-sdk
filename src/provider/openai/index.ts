@@ -1,7 +1,8 @@
-import { CallToolResponse, Provider, WidgetState } from "../../types";
+import { Provider, WidgetState } from "../../types";
 import { isOpenAiAvailable } from "../../utils";
 import { UnknownObject, Theme, SafeArea, UserAgent, DisplayMode } from "../../types";
 import { useOpenAiGlobal } from "./use-openai-global";
+import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
 export class OpenAiProvider implements Provider {
     constructor() {
@@ -54,8 +55,13 @@ export class OpenAiProvider implements Provider {
         return window.openai.setWidgetState(widgetState);
     }
 
-    callTool(name: string, args?: Record<string, unknown>): Promise<CallToolResponse> {
-        return window.openai.callTool(name, args);
+    async callTool(name: string, args?: Record<string, unknown>): Promise<CallToolResult> {
+        const result = await window.openai.callTool(name, args);
+        // if result is a string, convert it back to struct
+        if (typeof result === "string") {
+            return JSON.parse(result) as CallToolResult;
+        }
+        return result as CallToolResult;
     }
 
     sendFollowupMessage(message: string): void {

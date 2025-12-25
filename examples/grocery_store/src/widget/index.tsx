@@ -1,16 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createRoot } from "react-dom/client";
 import { getImageForItem } from "./images.js";
-// Import SDK to ensure window.pixie is available
-import "../../../../src/index.ts";
-import type { Provider } from "../../../../src/types.js";
 import "./styles.css";
 
-declare global {
-  interface Window {
-    pixie: Provider;
-  }
-}
+// Import SDK to ensure window.pixie is available and types are loaded
+import "../../../../src/index.ts";
 
 type CartItem = {
   name: string;
@@ -39,7 +33,24 @@ const createDefaultCartState = (): CartWidgetState => ({
 function App() {
   const toolOutput = window.pixie.useToolOutput() as GroceryPayload | null;
   const widgetState = window.pixie.getWidgetState() as CartWidgetState | null;
-  
+
+  const theme = window.pixie.useTheme();
+  const displayMode = window.pixie.useDisplayMode();
+  const maxHeight = window.pixie.useMaxHeight();
+  const safeArea = window.pixie.useSafeArea();
+  const userAgent = window.pixie.useUserAgent();
+  const locale = window.pixie.useLocale();
+
+  // log as these change
+  useEffect(() => {
+    console.log("theme", theme);
+    console.log("displayMode", displayMode);
+    console.log("maxHeight", maxHeight);
+    console.log("safeArea", safeArea);
+    console.log("userAgent", userAgent);
+    console.log("locale", locale);
+  }, [theme, displayMode, maxHeight, safeArea, userAgent, locale]);
+
   const [cartState, setCartState] = useState<CartWidgetState>(() => {
     return widgetState ?? createDefaultCartState();
   });
@@ -55,6 +66,7 @@ function App() {
   
   const cartItems = Array.isArray(cartState?.items) ? cartState.items : [];
   const lastToolOutputRef = useRef<string>("__tool_output_unset__");
+  const [directToolResult, setDirectToolResult] = useState<GroceryPayload | null>(null);
   
   // Sync with window.pixie widgetState when it changes
   useEffect(() => {
@@ -64,15 +76,16 @@ function App() {
     }
   }, [widgetState]);
 
-  // Update cart when tool output changes
+  // Update cart when tool is called
   useEffect(() => {
-    if (toolOutput == null) {
+    const activeToolOutput = directToolResult ?? toolOutput;
+    if (activeToolOutput == null) {
       return;
     }
 
     const serializedToolOutput = (() => {
       try {
-        return JSON.stringify(toolOutput);
+        return JSON.stringify(activeToolOutput);
       } catch (error) {
         console.warn("Unable to serialize toolOutput", error);
         return "__tool_output_error__";
@@ -84,8 +97,8 @@ function App() {
     }
     lastToolOutputRef.current = serializedToolOutput;
 
-    const incomingItems = Array.isArray(toolOutput?.items)
-      ? toolOutput.items ?? []
+    const incomingItems = Array.isArray(activeToolOutput?.items)
+      ? activeToolOutput.items ?? []
       : [];
 
     const baseState = cartState ?? createDefaultCartState();
@@ -117,7 +130,7 @@ function App() {
 
     setCartState(nextState);
     window.pixie.setWidgetState(nextState);
-  }, [toolOutput, cartState]);
+  }, [toolOutput, directToolResult, cartState]);
 
   const addItem = useCallback((name: string, price?: number) => {
     if (!name) {
@@ -210,12 +223,22 @@ function App() {
     window.pixie.requestClose();
   }
 
-  function testCallTool() {
-    window.pixie.callTool("search-groceries", { query: "fruits" });
+  async function testCallTool() {
+    try {
+      const result = await window.pixie.callTool("search-groceries", { query: "fruits" });
+      if (result?.structuredContent) {
+        setDirectToolResult(result.structuredContent as GroceryPayload);
+      } else {
+        console.error("No structured content found in callTool result");
+      }
+    } catch (error) {
+      console.error("Error calling tool:", error);
+    }
   }
 
-  const groceryItems: GroceryItem[] = Array.isArray(toolOutput?.items)
-    ? toolOutput.items
+  const activeToolOutput = directToolResult ?? toolOutput;
+  const groceryItems: GroceryItem[] = Array.isArray(activeToolOutput?.items)
+    ? activeToolOutput.items
     : [];
 
   // Debug: log grocery items to console

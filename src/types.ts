@@ -1,3 +1,5 @@
+import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+
 export type UnknownObject = Record<string, unknown>;
 
 export type WidgetState = UnknownObject;
@@ -46,7 +48,7 @@ export interface Provider {
    getWidgetState: () => WidgetState;
    setWidgetState: (widgetState: WidgetState) => void;
 
-   callTool(name: string, args?: Record<string, unknown>): Promise<CallToolResponse>;
+   callTool: (name: string, args?: Record<string, unknown>) => Promise<CallToolResult>;
    sendFollowupMessage: (message: string) => void;
    openExternal: (href: string) => void;
    requestDisplayMode: (mode: DisplayMode) => void;
