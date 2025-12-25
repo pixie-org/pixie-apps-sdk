@@ -1,0 +1,37 @@
+{
+  "name": "grocery-store-mcp",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Grocery store MCP server with shopping cart widget using window.pixie",
+  "scripts": {
+    "build": "vite build",
+    "start": "concurrently \"tsx src/server.ts\" \"tsx src/server_mcpapps.ts\"",
+    "start:server": "tsx src/server.ts",
+    "start:mcpapps": "tsx src/server_mcpapps.ts",
+    "dev": "tsx watch src/server.ts",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,html}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,html}\""
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "content-type": "^1.0.5",
+    "raw-body": "^2.5.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/content-type": "^1.1.5",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "concurrently": "^8.2.2",
+    "prettier": "^3.2.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vite": "^5.0.0"
+  }
+}
+
