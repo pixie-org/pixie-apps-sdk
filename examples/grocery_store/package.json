@@ -2,7 +2,6 @@
   "name": "grocery-store-mcp",
   "version": "0.1.0",
   "type": "module",
-  "private": true,
   "description": "Grocery store MCP server with shopping cart widget using window.pixie",
   "scripts": {
     "build": "vite build",
