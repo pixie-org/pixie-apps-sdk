@@ -27,7 +27,7 @@ export class McpAppsProvider implements Provider {
     constructor() {
         this.app = new App({
             name: "Pixie Apps SDK",
-            version: "1.0.4",
+            version: "1.0.5",
         });
 
         this.toolInputStore = createStateStore<UnknownObject>({});
