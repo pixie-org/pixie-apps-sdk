@@ -27,17 +27,14 @@ export class McpAppsProvider implements Provider {
     constructor() {
         this.app = new App({
             name: "Pixie Apps SDK",
-            version: "1.0.3",
+            version: "1.0.4",
         });
-        this.app.connect(new PostMessageTransport(window.parent));
 
         this.toolInputStore = createStateStore<UnknownObject>({});
         this.toolOutputStore = createStateStore<UnknownObject>({});
         this.toolResponseMetadataStore = createStateStore<UnknownObject>({});
         this.hostContextStore = createStateStore<HostContext>({});
 
-        const initialContext = this.app.getHostContext();
-        this.hostContextStore.setState(initialContext as HostContext);
         this.app.onhostcontextchanged = (params) => {
             const currentContext = this.hostContextStore.getState();
             this.hostContextStore.setState({
@@ -55,6 +52,13 @@ export class McpAppsProvider implements Provider {
             this.toolOutputStore.setState(toolResult.structuredContent || {});
             this.toolResponseMetadataStore.setState(toolResult._meta as UnknownObject);
         };
+
+        // connect to the host app and get the initial context
+        this.app.connect(new PostMessageTransport(window.parent));
+        const initialContext = this.app.getHostContext();
+        if (initialContext) {
+            this.hostContextStore.setState(initialContext as HostContext);
+        }
     }
 
     useToolInput(): UnknownObject {
