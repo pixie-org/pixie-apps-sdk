@@ -4,9 +4,15 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = path.resolve(__dirname, "../..");
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      "pixie-apps-sdk": path.resolve(rootDir, "dist/index.es.js"),
+    },
+  },
   build: {
     outDir: path.resolve(__dirname, "assets"),
     rollupOptions: {

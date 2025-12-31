@@ -3,8 +3,24 @@ import { createRoot } from "react-dom/client";
 import { getImageForItem } from "./images.js";
 import "./styles.css";
 
-// Import SDK to ensure window.pixie is available and types are loaded
-import "../../../../src/index.ts";
+// Import SDK functions directly
+import {
+  useToolOutput,
+  useTheme,
+  useDisplayMode,
+  useMaxHeight,
+  useSafeArea,
+  useUserAgent,
+  useLocale,
+  getWidgetState,
+  setWidgetState,
+  requestDisplayMode,
+  openExternal,
+  sendFollowupMessage,
+  requestModal,
+  requestClose,
+  callTool,
+} from "pixie-apps-sdk";
 
 type CartItem = {
   name: string;
@@ -31,15 +47,15 @@ const createDefaultCartState = (): CartWidgetState => ({
 });
 
 function App() {
-  const toolOutput = window.pixie.useToolOutput() as GroceryPayload | null;
-  const widgetState = window.pixie.getWidgetState() as CartWidgetState | null;
+  const toolOutput = useToolOutput() as GroceryPayload | null;
+  const widgetState = getWidgetState() as CartWidgetState | null;
 
-  const theme = window.pixie.useTheme();
-  const displayMode = window.pixie.useDisplayMode();
-  const maxHeight = window.pixie.useMaxHeight();
-  const safeArea = window.pixie.useSafeArea();
-  const userAgent = window.pixie.useUserAgent();
-  const locale = window.pixie.useLocale();
+  const theme = useTheme();
+  const displayMode = useDisplayMode();
+  const maxHeight = useMaxHeight();
+  const safeArea = useSafeArea();
+  const userAgent = useUserAgent();
+  const locale = useLocale();
 
   // log as these change
   useEffect(() => {
@@ -57,7 +73,7 @@ function App() {
   
   // Show cart if there are items when widget loads
   const [isCartVisible, setIsCartVisible] = useState(() => {
-    const savedState = window.pixie.getWidgetState() as CartWidgetState | null;
+    const savedState = getWidgetState() as CartWidgetState | null;
     const items = Array.isArray(savedState?.items) ? savedState.items : [];
     return items.length > 0;
   });
@@ -68,9 +84,9 @@ function App() {
   const lastToolOutputRef = useRef<string>("__tool_output_unset__");
   const [directToolResult, setDirectToolResult] = useState<GroceryPayload | null>(null);
   
-  // Sync with window.pixie widgetState when it changes
+  // Sync with widgetState when it changes
   useEffect(() => {
-    const currentState = window.pixie.getWidgetState() as CartWidgetState | null;
+    const currentState = getWidgetState() as CartWidgetState | null;
     if (currentState) {
       setCartState(currentState);
     }
@@ -129,7 +145,7 @@ function App() {
     };
 
     setCartState(nextState);
-    window.pixie.setWidgetState(nextState);
+    setWidgetState(nextState);
   }, [toolOutput, directToolResult, cartState]);
 
   const addItem = useCallback((name: string, price?: number) => {
@@ -155,7 +171,7 @@ function App() {
       }
 
       const newState = { ...baseState, items };
-      window.pixie.setWidgetState(newState);
+      setWidgetState(newState);
       return newState;
     });
     
@@ -188,44 +204,44 @@ function App() {
       }
 
       const newState = { ...baseState, items };
-      window.pixie.setWidgetState(newState);
+      setWidgetState(newState);
       return newState;
     });
   }, []);
 
   function handleItemClick(item: GroceryItem) {
     // Request fullscreen display mode
-    window.pixie.requestDisplayMode("fullscreen");
+    requestDisplayMode("fullscreen");
   }
 
   function handleCheckout() {
     // Open external link
-    window.pixie.openExternal("https://trypixie.app");
+    openExternal("https://trypixie.app");
   }
 
-  // Test functions for window.pixie methods
+  // Test functions for SDK methods
   function testSendFollowupMessage() {
-    window.pixie.sendFollowupMessage("Can you show me more dairy products?");
+    sendFollowupMessage("Can you show me more dairy products?");
   }
 
   function testOpenExternal() {
-    window.pixie.openExternal("https://trypixie.app");
+    openExternal("https://trypixie.app");
   }
 
   function testRequestModal() {
-    window.pixie.requestModal({ 
+    requestModal({ 
       title: "Modal View", 
       params: { message: "This is a test modal!" } 
     });
   }
 
   function testRequestClose() {
-    window.pixie.requestClose();
+    requestClose();
   }
 
   async function testCallTool() {
     try {
-      const result = await window.pixie.callTool("search-groceries", { query: "fruits" });
+      const result = await callTool("search-groceries", { query: "fruits" });
       if (result?.structuredContent) {
         setDirectToolResult(result.structuredContent as GroceryPayload);
       } else {
@@ -844,7 +860,7 @@ function App() {
           )}
         </div>
 
-        {/* Test Panel for window.pixie methods */}
+        {/* Test Panel for SDK methods */}
         <section style={{
           marginTop: '2rem',
           borderRadius: '1.5rem',
@@ -862,7 +878,7 @@ function App() {
               color: '#1e40af',
               margin: 0,
             }}>
-              Test window.pixie Methods
+              Test SDK Methods
             </p>
             <p style={{
               marginTop: '0.25rem',
@@ -870,7 +886,7 @@ function App() {
               color: 'rgba(0, 0, 0, 0.6)',
               margin: 0,
             }}>
-              Click buttons to test different window.pixie functionality
+              Click buttons to test different SDK functionality
             </p>
           </header>
           <div style={{

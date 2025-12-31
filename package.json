@@ -30,5 +30,6 @@
     "dist",
     "README.md",
     "LICENSE"
-  ]
+  ],
+  "sideEffects": true
 }
